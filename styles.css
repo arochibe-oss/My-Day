@@ -27,3 +27,11 @@ button.pri{font:inherit;background:var(--rose);color:var(--strong);border:0;bord
 #tabs button.on{color:var(--strong);font-weight:600;background:var(--beige)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 84px);background:var(--sage);color:var(--strong);padding:10px 18px;border-radius:14px;box-shadow:0 2px 10px rgba(80,60,40,.18);font-size:14px;z-index:9;max-width:90%;text-align:center}
 .toast.bad{background:var(--rose)}
+.seg{display:flex;gap:6px;margin:14px 0}.seg button{flex:1;font:inherit;border:0;border-radius:12px;padding:8px;background:var(--beige);color:var(--ink)}.seg .on{background:var(--rose);color:var(--strong)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:10px}.nav .sub{flex:1;text-align:center;font-size:15px}
+.nav button,.mini{font:inherit;background:var(--card);border:1px solid var(--line);color:var(--strong);border-radius:10px;padding:4px 10px}
+.cal span[data-d]{cursor:pointer;min-height:44px}.dt{display:inline-block;width:5px;height:5px;border-radius:50%;margin:0 1px}.dt.e{background:var(--rose)}.dt.t{background:var(--sage)}
+.sw{width:10px;height:36px;border-radius:5px;flex:none;display:inline-block}
+.fm{display:flex;flex-direction:column;gap:10px;margin-top:12px}.fm label{display:flex;flex-direction:column;gap:4px;font-size:13px}.two{display:flex;gap:8px}.two>*{flex:1;min-width:0}
+textarea{font:inherit;color:var(--strong);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;min-height:70px}
+button.sec{font:inherit;background:var(--beige);color:var(--strong);border:0;border-radius:12px;padding:10px 16px}

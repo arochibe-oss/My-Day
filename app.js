@@ -10,24 +10,25 @@ function theme(){document.documentElement.dataset.theme=cfg.theme||'auto'}
 async function inicio(){
  const now=new Date(),t=iso(now),h=now.getHours();
  const [allT,allE]=await Promise.all([DB.all('tasks'),DB.all('events')]);
- const tasks=allT.filter(x=>x.date===t),evs=allE.filter(x=>x.date===t).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
- const marks=new Set([...allT,...allE].map(x=>x.date));
+ const tasks=allT.filter(x=>x.date===t),evs=allE.filter(x=>occurs(x,t)).sort((a,b)=>(a.start||'').localeCompare(b.start||''));
+ const marks=new Set(allT.map(x=>x.date));
  const y=now.getFullYear(),m=now.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
  let cells='';for(const d of 'LMMJVSD')cells+=`<b>${d}</b>`;
  for(let i=0;i<first;i++)cells+='<span></span>';
- for(let d=1;d<=days;d++){const k=iso(new Date(y,m,d));cells+=`<span class="${d===now.getDate()?'hoy':''} ${marks.has(k)?'dot':''}">${d}</span>`}
+ for(let d=1;d<=days;d++){const k=iso(new Date(y,m,d));cells+=`<span class="${d===now.getDate()?'hoy':''} ${(marks.has(k)||allE.some(e=>occurs(e,k)))?'dot':''}">${d}</span>`}
  const done=tasks.filter(x=>x.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
  const greet=h<12?'Buenos días':h<20?'Buenas tardes':'Buenas noches';
  view.innerHTML=`<div class="sub">${fmt(now,{weekday:'long'})}</div>
  <h1>${greet}${cfg.name?', '+esc(cfg.name):''}</h1><div class="sub">${fmt(now,{day:'numeric',month:'long',year:'numeric'})}</div>
  <div class="card" style="margin-top:16px"><div class="sub" style="margin-bottom:6px">${fmt(now,{month:'long',year:'numeric'})}</div><div class="cal">${cells}</div></div>
  <h2>Tu día de hoy</h2>
- <div class="card"><div class="empty">${evs.length?evs.map(e=>`<div class="row">${esc(e.start||'')} ${esc(e.title)}</div>`).join(''):'No tienes eventos hoy.'}</div></div>
+ <div class="card"><div class="empty">${evs.length?evs.map(e=>`<div class="row"><i class="sw" style="background:${e.color||catColor(e.cat)};height:24px"></i>${esc(e.start||'')} ${esc(e.title)}</div>`).join(''):'No tienes eventos hoy.'}</div><button class="pri" id="ne" style="margin-top:8px">Nuevo evento</button></div>
  <div class="card"><div>${tasks.length?`${done} de ${tasks.length} tareas completadas`:'Aún no tienes tareas para hoy.'}</div>
  ${tasks.length?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}
  ${tasks.map(x=>`<div class="row"><button class="ck ${x.done?'on':''}" data-id="${x.id}" aria-label="Marcar tarea">${x.done?'✓':''}</button><span class="${x.done?'done':''}">${esc(x.title)}</span></div>`).join('')}
  <form id="f"><input id="n" placeholder="Agregar una tarea para hoy" maxlength="120"><button class="pri">Guardar</button></form></div>`;
  view.querySelectorAll('.ck').forEach(b=>b.onclick=async()=>{const x=tasks.find(q=>q.id===b.dataset.id);x.done=!x.done;await DB.put('tasks',x);inicio()});
+ view.querySelector('#ne').onclick=()=>eventForm({date:t});
  view.querySelector('#f').onsubmit=async e=>{e.preventDefault();const v=view.querySelector('#n').value.trim();if(!v)return;
   const x={id:DB.uid(),title:v,date:t,done:false,created:Date.now()};
   try{await DB.put('tasks',x);const back=await DB.get('tasks',x.id);if(!back)throw 0;await inicio();toast('✓ Tarea guardada')}
@@ -43,7 +44,7 @@ async function perfil(){
  view.querySelector('#nm').onchange=async e=>{cfg.name=e.target.value.trim();await DB.put('settings',{key:'name',value:cfg.name})};
 }
 function soon(k){const[a,b]=SOON[k];view.innerHTML=`<h1>${a}</h1><div class="card" style="margin-top:16px">${b}</div>`}
-function go(k){tab=k;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));window.scrollTo(0,0);k==='inicio'?inicio():k==='perfil'?perfil():soon(k)}
+function go(k){tab=k;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));view.onclick=null;window.scrollTo(0,0);k==='inicio'?inicio():k==='perfil'?perfil():k==='calendario'?calendario():k==='tareas'?tareas():soon(k)}
 (async()=>{
  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button data-t="${k}">${l}</button>`).join('');
  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.t));
