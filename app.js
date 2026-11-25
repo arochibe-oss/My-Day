@@ -5,6 +5,7 @@ const TABS=[['inicio','Inicio'],['calendario','Calendario'],['tareas','Tareas'],
 const SOON={calendario:['Calendario','Vistas mensual, semanal y diaria, y eventos con recordatorios. Llega en la etapa 2.'],tareas:['Tareas','Listas personalizadas, prioridades y fechas límite. Llega en la etapa 2.'],recuerdos:['Recuerdos','Tu diario, fotografías, línea del tiempo y "Un día como hoy". Llega en las etapas 3 y 4.']};
 let tab='inicio',cfg={};
 const view=document.getElementById('view');
+function toast(msg,bad){const o=document.querySelector('.toast');if(o)o.remove();const d=document.createElement('div');d.className='toast'+(bad?' bad':'');d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2600)}
 function theme(){document.documentElement.dataset.theme=cfg.theme||'auto'}
 async function inicio(){
  const now=new Date(),t=iso(now),h=now.getHours();
@@ -25,9 +26,12 @@ async function inicio(){
  <div class="card"><div>${tasks.length?`${done} de ${tasks.length} tareas completadas`:'Aún no tienes tareas para hoy.'}</div>
  ${tasks.length?`<div class="bar"><i style="width:${pct}%"></i></div>`:''}
  ${tasks.map(x=>`<div class="row"><button class="ck ${x.done?'on':''}" data-id="${x.id}" aria-label="Marcar tarea">${x.done?'✓':''}</button><span class="${x.done?'done':''}">${esc(x.title)}</span></div>`).join('')}
- <form id="f"><input id="n" placeholder="Agregar una tarea para hoy" maxlength="120"><button class="pri">Agregar</button></form></div>`;
+ <form id="f"><input id="n" placeholder="Agregar una tarea para hoy" maxlength="120"><button class="pri">Guardar</button></form></div>`;
  view.querySelectorAll('.ck').forEach(b=>b.onclick=async()=>{const x=tasks.find(q=>q.id===b.dataset.id);x.done=!x.done;await DB.put('tasks',x);inicio()});
- view.querySelector('#f').onsubmit=async e=>{e.preventDefault();const v=view.querySelector('#n').value.trim();if(!v)return;await DB.put('tasks',{id:DB.uid(),title:v,date:t,done:false,created:Date.now()});inicio()};
+ view.querySelector('#f').onsubmit=async e=>{e.preventDefault();const v=view.querySelector('#n').value.trim();if(!v)return;
+  const x={id:DB.uid(),title:v,date:t,done:false,created:Date.now()};
+  try{await DB.put('tasks',x);const back=await DB.get('tasks',x.id);if(!back)throw 0;await inicio();toast('✓ Tarea guardada')}
+  catch(err){toast('No se pudo guardar. Revisa el espacio de tu celular e inténtalo de nuevo.',true)}};
 }
 async function perfil(){
  const ok=await DB.persist();

@@ -25,3 +25,5 @@ button.pri{font:inherit;background:var(--rose);color:var(--strong);border:0;bord
 #tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(env(safe-area-inset-bottom) + 6px)}
 #tabs button{flex:1;background:none;border:0;font:inherit;font-size:12px;color:var(--ink);padding:10px 0;border-radius:12px}
 #tabs button.on{color:var(--strong);font-weight:600;background:var(--beige)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 84px);background:var(--sage);color:var(--strong);padding:10px 18px;border-radius:14px;box-shadow:0 2px 10px rgba(80,60,40,.18);font-size:14px;z-index:9;max-width:90%;text-align:center}
+.toast.bad{background:var(--rose)}
