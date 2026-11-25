@@ -1,7 +1,7 @@
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const fmt=(d,o)=>new Intl.DateTimeFormat('es-MX',o).format(d);
-const TABS=[['inicio','Inicio'],['calendario','Calendario'],['tareas','Tareas'],['recuerdos','Recuerdos'],['perfil','Perfil']];
+const TABS=[['calendario','Calendario'],['eventos','Eventos'],['recuerdos','Recuerdos'],['tareas','Tareas'],['perfil','Perfil']];
 const SOON={calendario:['Calendario','Vistas mensual, semanal y diaria, y eventos con recordatorios. Llega en la etapa 2.'],tareas:['Tareas','Listas personalizadas, prioridades y fechas límite. Llega en la etapa 2.'],recuerdos:['Recuerdos','Tu diario, fotografías, línea del tiempo y "Un día como hoy". Llega en las etapas 3 y 4.']};
 let tab='inicio',cfg={};
 const view=document.getElementById('view');
@@ -36,19 +36,19 @@ async function inicio(){
 }
 async function perfil(){
  const ok=await DB.persist();
- view.innerHTML=`<h1>Perfil</h1><h2>Tu nombre</h2><div class="card"><input id="nm" value="${esc(cfg.name||'')}" placeholder="Cómo quieres que te salude" maxlength="40"></div>
- <h2>Apariencia</h2><div class="card"><select id="th"><option value="auto">Automático</option><option value="light">Claro</option><option value="dark">Oscuro</option></select></div>
- <h2>Tus datos</h2><div class="card empty">Todo se guarda solo en este celular. ${ok===true?'El almacenamiento está protegido contra borrado automático.':'Tu navegador puede borrar datos si falta espacio; los respaldos (etapa 5) te protegerán.'}</div>`;
+ view.innerHTML=`<h1>Perfil</h1><details class="card"><summary>Mi perfil${cfg.name?' · '+esc(cfg.name):''}</summary><div class="fm"><label>Tu nombre<input id="nm" value="${esc(cfg.name||'')}" placeholder="Cómo quieres que te salude" maxlength="40"></label>
+ <label>Apariencia<select id="th"><option value="auto">Automático</option><option value="light">Claro</option><option value="dark">Oscuro</option></select></label>
+ <div class="empty">Todo se guarda solo en este celular. ${ok===true?'El almacenamiento está protegido contra borrado automático.':'Tu navegador puede borrar datos si falta espacio; los respaldos (etapa 5) te protegerán.'}</div></div></details>`;
  const th=view.querySelector('#th');th.value=cfg.theme||'auto';
  th.onchange=async()=>{cfg.theme=th.value;await DB.put('settings',{key:'theme',value:cfg.theme});theme()};
- view.querySelector('#nm').onchange=async e=>{cfg.name=e.target.value.trim();await DB.put('settings',{key:'name',value:cfg.name})};
+ view.querySelector('#nm').onchange=async e=>{cfg.name=e.target.value.trim();await DB.put('settings',{key:'name',value:cfg.name});toast('✓ Nombre guardado')};
 }
 function soon(k){const[a,b]=SOON[k];view.innerHTML=`<h1>${a}</h1><div class="card" style="margin-top:16px">${b}</div>`}
-function go(k){tab=k;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));view.onclick=null;window.scrollTo(0,0);k==='inicio'?inicio():k==='perfil'?perfil():k==='calendario'?calendario():k==='tareas'?tareas():soon(k)}
+function go(k){tab=k;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===k));view.onclick=null;window.scrollTo(0,0);({calendario,eventos,recuerdos,tareas,perfil})[k]()}
 (async()=>{
  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button data-t="${k}">${l}</button>`).join('');
  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.t));
  try{(await DB.all('settings')).forEach(s=>cfg[s.key]=s.value)}catch(e){}
- theme();go('inicio');
+ theme();go('calendario');
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
